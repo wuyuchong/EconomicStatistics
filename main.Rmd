@@ -1,0 +1,20 @@
+---
+documentclass: ctexart
+output:
+  word_document:
+    toc: yes
+  rticles::ctex:
+    fig_caption: yes
+    number_sections: yes
+    toc: yes
+    template: template.tex
+classoption: "hyperref,"
+geometry: margin=1in
+csl: chinese-gb7714-2005-numeric.csl
+bibliography: reference.bib
+header-includes:
+   - \usepackage{graphicx}
+   - \usepackage{float}
+logo: "cufe.jpg"
+---
+
