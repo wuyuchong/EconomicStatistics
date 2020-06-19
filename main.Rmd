@@ -48,7 +48,7 @@ library(pROC)
 
 # 数据
 
-数据进行脱敏处理
+我们对数据进行脱敏处理。
 
 ```{r}
 dat = read.csv("data copy.csv", header = TRUE)
@@ -62,8 +62,6 @@ dat_complete$Terminate = as.factor(dat_complete$Terminate)
 
 共有 310 个观测
 
-
-
 # 描述分析
 
 ## 时薪（美元）
@@ -74,6 +72,19 @@ ggplot(dat_complete, aes(x = PayRate, fill = Terminate)) +
   theme_minimal() +
   scale_fill_manual(values = c("#037418", "darkred"))
 ```
+
+离职的员工与在职的员工的有着相似的薪资分布情况，员工的时薪在 20 - 25 美元和 45 - 60 美元之间较为集中。但有所不同的是，离职的员工集中于 20 - 25 美元的比例更大，而集中于 45 - 60 美元的比例更小。这说明薪资过低的确是离职的一个较为重要的理由之一。
+
+```{r fig.align="center", fig.cap="不同性别员工日薪分布密度图（蓝色代表已婚）", out.width="80%"}
+ggplot(dat_complete, aes(x = Sex, y = PayRate, fill = as.factor(MarriedID))) +
+  geom_violin(alpha = 0.3) + 
+  theme_minimal() +
+  labs(fill = "Married")
+```
+
+女性相比男性，时薪在 20 - 25 美元的低水平处聚集更加明显。
+
+已婚员工群体相对于未婚员工群体，最低薪资相对更高一些，低收入范围的平均工资更高一些，且中等收入范围的员工比例更多。考虑到婚姻状况与年龄强相关，我们认为这很有可能是由员工的工作经验所带来的影响。
 
 ## 参与感
 
@@ -87,25 +98,23 @@ dat_complete %>%
     scale_fill_manual(values = c("#037418", "darkred"))
 ```
 
+技术和销售部门员工的参与感不如生产和行政部门。对于 IT 和软件开发部门，离职者的参与感比在职者弱，他们离职的原因之一是没有获得足够的归属感和价值感。而对于销售和生产部门，离职着的参与感比在职者更强，工作太过繁忙可能是促成他们离职的一大原因。而对于行政岗位，没有足够的参与感往往意味着地位不足，可能收到部门的排挤和边缘化，促成了人员的离职。
+
 ## 绩效
 
-```{r fig.align="center", fig.cap="离职与在职两类员工绩效（红色代表离职）", out.width="80%"}
-ggplot(dat_complete, aes(x = PerformanceScore, fill = Terminate)) +
-  geom_bar(stat = "count", alpha = 0.6, position = "dodge") +
+```{r fig.align="center", fig.cap="不同任职状况的员工绩效（红色代表离职）", out.width="80%"}
+ggplot(dat_complete, aes(x = EmploymentStatus, fill = PerformanceScore)) +
+  geom_bar(stat = "count", position = "fill") +
   theme_minimal() +
-  scale_fill_manual(values = c("#037418", "darkred")) +
-  labs(y = "percentage")
+  labs(y = "count") + 
+  coord_flip()
 ```
 
-## 未定
+1. 在职员工的绩效普遍都在优秀和良好两档
+1. 自愿离职的员工绩效优秀的比例小一些
+1. 被解雇的员工绩效为 “需要提高” 的比例非常高，同时解雇前已经被列入 “解雇缓冲” 的比例远高于在职和自愿离职的员工
 
-```{r fig.align="center", fig.cap="离职与在职两类不同部门员工参与感箱线图（红色代表离职）", out.width="80%"}
-dat_process = dat_complete[which(dat_complete$MonthlyIncome < 30000),]
-ggplot(dat_process, aes(x = SeriousDlqin2yrs, y = MonthlyIncome, fill = SeriousDlqin2yrs)) +
-  geom_violin(alpha = 0.3) + 
-  theme_minimal() +
-  scale_fill_manual(values = c("#037418", "darkred"))
-```
+可见绩效表现不好、不适应工作是员工自愿离职或被解雇的重要原因之一。
 
 # Logit 回归
 
@@ -118,7 +127,6 @@ ggplot(dat_process, aes(x = SeriousDlqin2yrs, y = MonthlyIncome, fill = SeriousD
 因为 logit 模型相对简单，求解速度快，且具有较强的可解释性，故我们使用 logit 模型对样本进行拟合。
 
 我们将**离职**作为响应变量，选取的自变量有：
-
 
 1. 性别
 1. 婚姻状况：包括离婚、已婚、分居、未婚、配偶去世
